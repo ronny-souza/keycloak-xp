@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-keycloak-database.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql
+    ports:
+      - 5432:5432
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.1.0
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db:5432/keycloak
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=root
+    ports:
+      - 8181:8080
+    command: start-dev
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "root"]
+      interval: 10s
+      retries: 5
+
+volumes:
+  pgdata:
