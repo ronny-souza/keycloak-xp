@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: Keycloak XP
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: ${APP_OAUTH2_JWK_ISSUER_URI:http://localhost:8181/realms/keycloakxp}
+          jwk-set-uri: ${spring.security.oauth2.resource-server.jwt.issuer-uri}/protocol/openid-connect/certs
+
+openapi:
+  info:
+    title: ${API_TITLE:Keycloak Experience}
+    description: ${API_DESCRIPTION:API for authentication and authorization using Keycloak.}
+    version: ${API_VERSION:1.0.0}
+    developer: ${API_DEVELOPER:Ronyeri Marinho}
+    developerUrl: ${API_DEVELOPER_URL:https://www.linkedin.com/in/ronyeri-marinho/}
+    developerContact: ${API_DEVELOPER_CONTACT}
