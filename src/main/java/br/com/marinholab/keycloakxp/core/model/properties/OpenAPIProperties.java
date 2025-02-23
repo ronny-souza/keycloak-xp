@@ -1,4 +1,4 @@
-package br.com.marinholab.keycloakxp.model.properties;
+package br.com.marinholab.keycloakxp.core.model.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
