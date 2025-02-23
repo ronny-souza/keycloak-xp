@@ -86,7 +86,7 @@ Acesse a documentação do Swagger para testar os endpoints: 👉 [http://localh
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está licenciado sob a **MIT License** - Sinta-se livre para usar, modificar e contribuir!
 
 ---
 
