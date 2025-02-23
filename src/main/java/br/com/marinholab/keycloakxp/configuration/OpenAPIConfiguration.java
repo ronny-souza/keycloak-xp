@@ -1,10 +1,11 @@
 package br.com.marinholab.keycloakxp.configuration;
 
-import br.com.marinholab.keycloakxp.model.properties.OpenAPIProperties;
+import br.com.marinholab.keycloakxp.core.model.properties.OpenAPIProperties;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenAPIConfiguration {
 
     @Bean
-    public OpenAPI customOpenAPI(OpenAPIProperties properties) {
+    OpenAPI customOpenAPI(OpenAPIProperties properties) {
         Contact contact = new Contact()
                 .name(properties.getDeveloper())
                 .email(properties.getDeveloperContact())
@@ -25,5 +26,15 @@ public class OpenAPIConfiguration {
                 .contact(contact);
 
         return new OpenAPI().components(new Components()).info(info);
+    }
+
+    @Bean
+    GroupedOpenApi customGroupedOpenApi() {
+        return GroupedOpenApi
+                .builder()
+                .group("custom-grouped-openapi-configuration")
+                .displayName("Custom Grouped OpenAPI Configuration")
+                .packagesToScan("br.com.marinholab.keycloakxp.core")
+                .build();
     }
 }

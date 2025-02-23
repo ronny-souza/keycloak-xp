@@ -8,6 +8,15 @@ spring:
           issuer-uri: ${APP_OAUTH2_JWK_ISSUER_URI:http://localhost:8181/realms/keycloakxp}
           jwk-set-uri: ${spring.security.oauth2.resource-server.jwt.issuer-uri}/protocol/openid-connect/certs
 
+keycloak:
+  server: ${KEYCLOAK_SERVER}
+  realm: ${KEYCLOAK_REALM}
+  clients: # A ideia aqui é poder configurar mais de um client, por isso uma configuração abrangente.
+    keycloakxp:
+      clientId: ${KEYCLOAKXP_CLIENT_ID}
+      clientSecret: ${KEYCLOAKXP_CLIENT_SECRET}
+
+
 openapi:
   info:
     title: ${API_TITLE:Keycloak Experience}

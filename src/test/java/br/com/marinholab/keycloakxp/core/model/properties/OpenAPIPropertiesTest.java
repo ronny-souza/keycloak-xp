@@ -1,4 +1,4 @@
-package br.com.marinholab.keycloakxp.model.properties;
+package br.com.marinholab.keycloakxp.core.model.properties;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
