@@ -1,6 +1,6 @@
 package br.com.marinholab.keycloakxp.configuration;
 
-import br.com.marinholab.keycloakxp.model.properties.OpenAPIProperties;
+import br.com.marinholab.keycloakxp.core.model.properties.OpenAPIProperties;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
