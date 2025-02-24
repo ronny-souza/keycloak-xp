@@ -35,7 +35,7 @@ jobs:
         run: mvn test
 
       - name: SonarCloud Scan
-      - run: mvn verify sonar:sonar \
+        run: mvn verify sonar:sonar \
           -Dsonar.java.source=21 \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.projectKey=${{ vars.KEYCLOAKXP_SONAR_PROJECT_KEY }} \
