@@ -35,9 +35,10 @@ jobs:
         run: mvn test
 
       - name: SonarCloud Scan
-        run: mvn verify sonar:sonar \
-          -Dsonar.java.source=21 \
-          -Dsonar.host.url=${{ vars.SONAR_CLOUD_URL }} \
-          -Dsonar.projectKey=${{ vars.KEYCLOAKXP_SONAR_PROJECT_KEY }} \
-          -Dsonar.organization=${{ vars.KEYCLOAKXP_SONAR_ORGANIZATION }} \
+        run: >
+          mvn verify sonar:sonar
+          -Dsonar.java.source=21
+          -Dsonar.host.url=${{ vars.SONAR_CLOUD_URL }}
+          -Dsonar.projectKey=${{ vars.KEYCLOAKXP_SONAR_PROJECT_KEY }}
+          -Dsonar.organization=${{ vars.KEYCLOAKXP_SONAR_ORGANIZATION }}
           -Dsonar.token=${{ vars.KEYCLOAKXP_SONAR_TOKEN }}
