@@ -13,8 +13,8 @@ public class KeycloakProperties {
     private String realm;
     private Map<String, KeycloakClientProperties> clients;
 
-    public KeycloakClientProperties getKeycloakXpClient() {
-        return this.clients.get("keycloakxp");
+    public KeycloakClientProperties getDefaultClient() {
+        return this.clients.get("default");
     }
 
     public String getServer() {
