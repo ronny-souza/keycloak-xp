@@ -17,7 +17,7 @@ class KeycloakPropertiesTest {
         KeycloakClientProperties keycloakClientPropertiesAsMock = mock(KeycloakClientProperties.class);
         String server = "server";
         String realm = "realm";
-        Map<String, KeycloakClientProperties> clients = Map.of("keycloakxp", keycloakClientPropertiesAsMock);
+        Map<String, KeycloakClientProperties> clients = Map.of("default", keycloakClientPropertiesAsMock);
 
         KeycloakProperties keycloakProperties = new KeycloakProperties();
         keycloakProperties.setServer(server);
@@ -28,6 +28,6 @@ class KeycloakPropertiesTest {
         assertEquals(server, keycloakProperties.getServer());
         assertEquals(realm, keycloakProperties.getRealm());
         assertEquals(clients, keycloakProperties.getClients());
-        assertEquals(keycloakClientPropertiesAsMock, keycloakProperties.getKeycloakXpClient());
+        assertEquals(keycloakClientPropertiesAsMock, keycloakProperties.getDefaultClient());
     }
 }

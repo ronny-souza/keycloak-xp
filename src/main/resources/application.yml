@@ -11,10 +11,10 @@ spring:
 keycloak:
   server: ${KEYCLOAK_SERVER}
   realm: ${KEYCLOAK_REALM}
-  clients: # A ideia aqui é poder configurar mais de um client, por isso uma configuração abrangente.
-    keycloakxp:
-      clientId: ${KEYCLOAKXP_CLIENT_ID}
-      clientSecret: ${KEYCLOAKXP_CLIENT_SECRET}
+  clients:
+    default:
+      clientId: ${DEFAULT_CLIENT_ID}
+      clientSecret: ${DEFAULT_CLIENT_SECRET}
 
 
 openapi:
