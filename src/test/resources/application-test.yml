@@ -1,0 +1,2 @@
+keycloak:
+  server: ${KEYCLOAK_SERVER:http://localhost:8181}
