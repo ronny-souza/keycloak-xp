@@ -7,20 +7,19 @@ import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
+import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -138,6 +137,7 @@ class UserControllerTest {
         UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
 
         String formAsJson = this.objectMapper.writeValueAsString(form);
+        when(this.authenticationService.login(any(UserLoginForm.class))).thenThrow(new UserAuthenticationException(form.username()));
 
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/login")
