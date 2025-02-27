@@ -21,7 +21,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/user").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/user", "/user/login").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer ->

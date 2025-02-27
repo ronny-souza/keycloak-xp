@@ -2,6 +2,7 @@ package br.com.marinholab.keycloakxp.core.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @Schema(description = "Represents the response object of creating a user")
 public record UserDTO(
@@ -32,6 +33,17 @@ public record UserDTO(
                 userRepresentation.getFirstName(),
                 userRepresentation.getLastName(),
                 userRepresentation.getRealmRoles() != null ? userRepresentation.getRealmRoles().getFirst() : "USER"
+        );
+    }
+
+    public UserDTO(Jwt jwt) {
+        this(
+                null,
+                jwt.getClaimAsString("preferred_username"),
+                jwt.getClaimAsString("email"),
+                jwt.getClaimAsString("given_name"),
+                jwt.getClaimAsString("family_name"),
+                null
         );
     }
 }
