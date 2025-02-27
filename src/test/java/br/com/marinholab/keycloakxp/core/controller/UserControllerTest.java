@@ -1,7 +1,10 @@
 package br.com.marinholab.keycloakxp.core.controller;
 
+import br.com.marinholab.keycloakxp.core.model.LoginResponseDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
+import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
+import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -10,12 +13,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -28,10 +34,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class UserControllerTest {
 
     @Autowired
@@ -39,6 +47,9 @@ class UserControllerTest {
 
     @MockitoBean
     private CreateUserService createUserService;
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
 
     private ObjectMapper objectMapper;
 
@@ -119,5 +130,59 @@ class UserControllerTest {
         assertTrue(response.containsHeader("Location"));
         assertNotNull(response.getHeader("Location"));
         assertTrue(Objects.requireNonNull(response.getHeader("Location")).endsWith(String.format("/user/%s", id)));
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and status 401 when user credentials are not valid on login")
+    void shouldThrowAnExceptionAndStatus401WhenUserCredentialsAreNotValidOnLogin() throws Exception {
+        UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
+
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/login")
+                        .header("Accept-Language", "en_US")
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should authenticate the user and return session data")
+    void shouldAuthenticateUserAndReturnSessionData() throws Exception {
+        UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
+
+        LoginResponseDTO loginResponseDTOAsMock = mock(LoginResponseDTO.class);
+        when(this.authenticationService.login(any(UserLoginForm.class))).thenReturn(loginResponseDTOAsMock);
+
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/login")
+                        .header("Accept-Language", "en_US")
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and status 401 when user credentials are not valid on get current user")
+    void shouldThrowAnExceptionAndStatus401WhenUserCredentialsAreNotValidOnGetCurrentUser() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .get("/user/current")
+                        .header("Accept-Language", "en_US")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should get current authenticated user")
+    void shouldGetCurrentAuthenticatedUser() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .get("/user/current")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .header("Accept-Language", "en_US")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }
