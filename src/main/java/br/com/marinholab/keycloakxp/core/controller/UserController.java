@@ -4,10 +4,12 @@ import br.com.marinholab.keycloakxp.core.model.LoginResponseDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
 import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
+import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
 import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
+import br.com.marinholab.keycloakxp.exception.UserLogoutException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -74,6 +76,25 @@ public class UserController {
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody UserLoginForm form) throws UserAuthenticationException {
         LoginResponseDTO response = this.authenticationService.login(form);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Ends a user's session in Keycloak.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "The user session was successfully disconnected from Keycloak."
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Unable to log out the user from Keycloak. This could be an internal issue or invalid credentials."
+            ),
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt,
+                                       @Valid @RequestBody UserLogoutForm form) throws UserLogoutException {
+        this.authenticationService.logout(form, jwt);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Retrieves basic information of the currently authenticated user.")
