@@ -4,10 +4,12 @@ import br.com.marinholab.keycloakxp.core.model.LoginResponseDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
 import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
+import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
 import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
+import br.com.marinholab.keycloakxp.exception.UserLogoutException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,8 +34,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @ExtendWith(MockitoExtension.class)
@@ -163,6 +165,40 @@ class UserControllerTest {
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and status 400 when user token is invalid on logout")
+    void shouldThrowAnExceptionAndStatus400WhenUserTokenIsInvalidOnLogout() throws Exception {
+        UserLogoutForm form = new UserLogoutForm("refreshToken");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        doThrow(new UserLogoutException("root")).when(this.authenticationService).logout(any(UserLogoutForm.class), any(Jwt.class));
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/logout")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should disconnect user session in Keycloak and return status 204")
+    void shouldDisconnectUserSessionInKeycloakAndReturnStatus204() throws Exception {
+        UserLogoutForm form = new UserLogoutForm("refreshToken");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        doNothing().when(this.authenticationService).logout(any(UserLogoutForm.class), any(Jwt.class));
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/logout")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
