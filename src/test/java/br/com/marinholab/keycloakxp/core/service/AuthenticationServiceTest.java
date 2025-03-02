@@ -51,7 +51,7 @@ class AuthenticationServiceTest {
         when(this.keycloakProperties.getDefaultClient()).thenReturn(keycloakClientPropertiesAsMock);
         when(keycloakClientPropertiesAsMock.getClientId()).thenReturn("clientId");
         when(keycloakClientPropertiesAsMock.getClientSecret()).thenReturn("secret");
-        when(this.keycloakClient.authenticate(anyString(), anyMap())).thenThrow(FeignException.class);
+        when(this.keycloakClient.authenticateByGrantType(anyString(), anyMap())).thenThrow(FeignException.class);
 
         assertThrows(
                 UserAuthenticationException.class,
