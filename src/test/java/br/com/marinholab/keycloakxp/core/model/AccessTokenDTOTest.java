@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class LoginResponseDTOTest {
+class AccessTokenDTOTest {
 
     @Test
     @DisplayName("Should return a valid instance of login response DTO")
@@ -18,7 +18,7 @@ class LoginResponseDTOTest {
         String sessionState = "sessionState";
         String scope = "scope";
 
-        LoginResponseDTO response = new LoginResponseDTO(
+        AccessTokenDTO response = new AccessTokenDTO(
                 accessToken,
                 expiresIn,
                 refreshExpiresIn,

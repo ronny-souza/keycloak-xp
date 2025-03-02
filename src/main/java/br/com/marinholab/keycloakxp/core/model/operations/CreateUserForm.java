@@ -8,7 +8,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
-@Schema(description = "Representation of the data required to create a user in Keycloak")
+@Schema(description = "Representation of the payload required to create a user in Keycloak.")
 public record CreateUserForm(
         @Schema(description = "Unique username")
         @NotBlank

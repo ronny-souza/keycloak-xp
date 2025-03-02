@@ -1,13 +1,16 @@
 package br.com.marinholab.keycloakxp.core.controller;
 
-import br.com.marinholab.keycloakxp.core.model.LoginResponseDTO;
+import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
+import br.com.marinholab.keycloakxp.core.model.operations.RefreshTokenForm;
 import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
 import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
+import br.com.marinholab.keycloakxp.core.service.RefreshTokenService;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
+import br.com.marinholab.keycloakxp.exception.RefreshTokenException;
 import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
 import br.com.marinholab.keycloakxp.exception.UserLogoutException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -20,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -52,7 +56,12 @@ class UserControllerTest {
     @MockitoBean
     private AuthenticationService authenticationService;
 
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
+
     private ObjectMapper objectMapper;
+
+    private final String jwtTokenMock = "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4MjQxOTJiNy01OWUzLTRhNTEtYmM0Mi0yOGU3OGVjNTMzMWYifQ.eyJleHAiOjE3NDA3ODQ4MzEsImlhdCI6MTc0MDc4NDIzMSwianRpIjoiNjZjY2I0YWUtY2ExMi00M2JlLTg2OTctMzIyZDQxYTBhMDI1IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgxL3JlYWxtcy9rZXljbG9ha3hwIiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgxL3JlYWxtcy9rZXljbG9ha3hwIiwic3ViIjoiYmJkYjE2Y2ItYzI1OS00M2YxLWIzYTEtMTA1Yzk5OWM2MDcxIiwidHlwIjoiUmVmcmVzaCIsImF6cCI6ImtleWNsb2FreHAiLCJzaWQiOiI2OTYyMGQyMi05MjhiLTQwZTAtOTc3OS1hZmIzNTg0YThhNzQiLCJzY29wZSI6IndlYi1vcmlnaW5zIHNlcnZpY2VfYWNjb3VudCBhY3IgcHJvZmlsZSByb2xlcyBlbWFpbCBiYXNpYyJ9.5cnDP8Zy5uo9gHfTRZXJfPe23lkXuFXmL8gxaj9r2uTlJt0VFL--NtqGNGXLTfsL9vPaQa0SkuTEpleZxUCEWw";
 
     @BeforeEach
     void init() {
@@ -154,8 +163,8 @@ class UserControllerTest {
     void shouldAuthenticateUserAndReturnSessionData() throws Exception {
         UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
 
-        LoginResponseDTO loginResponseDTOAsMock = mock(LoginResponseDTO.class);
-        when(this.authenticationService.login(any(UserLoginForm.class))).thenReturn(loginResponseDTOAsMock);
+        AccessTokenDTO accessTokenDTOAsMock = mock(AccessTokenDTO.class);
+        when(this.authenticationService.login(any(UserLoginForm.class))).thenReturn(accessTokenDTOAsMock);
 
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
@@ -187,7 +196,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Should disconnect user session in Keycloak and return status 204")
     void shouldDisconnectUserSessionInKeycloakAndReturnStatus204() throws Exception {
-        UserLogoutForm form = new UserLogoutForm("refreshToken");
+        UserLogoutForm form = new UserLogoutForm(this.jwtTokenMock);
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
         doNothing().when(this.authenticationService).logout(any(UserLogoutForm.class), any(Jwt.class));
@@ -199,6 +208,60 @@ class UserControllerTest {
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Should refresh user access token and return it with status 200")
+    void shouldRefreshUserAccessTokenAndReturnItWithStatus200() throws Exception {
+        RefreshTokenForm form = new RefreshTokenForm(this.jwtTokenMock);
+        AccessTokenDTO accessTokenDTOAsMock = mock(AccessTokenDTO.class);
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        when(this.refreshTokenService.refreshToken(any(Jwt.class), any(RefreshTokenForm.class))).thenReturn(accessTokenDTOAsMock);
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/refresh-token")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should throw exception and return status 400 when provided refresh token is invalid on refresh token operation")
+    void shouldThrowExceptionAndReturnStatus400WhenProvidedRefreshTokenIsInvalidOnRefreshTokenOperation() throws Exception {
+        RefreshTokenForm form = new RefreshTokenForm(this.jwtTokenMock);
+        RefreshTokenException exceptionAsMock = new RefreshTokenException(HttpStatus.BAD_REQUEST, "root");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        doThrow(exceptionAsMock).when(this.refreshTokenService).refreshToken(any(Jwt.class), any(RefreshTokenForm.class));
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/refresh-token")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should throw exception and return status 500 when internal error occurs in refresh token operation")
+    void shouldThrowExceptionAndReturnStatus500WhenInternalErrorOccursInRefreshTokenOperation() throws Exception {
+        RefreshTokenForm form = new RefreshTokenForm(this.jwtTokenMock);
+        RefreshTokenException exceptionAsMock = new RefreshTokenException("root");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        doThrow(exceptionAsMock).when(this.refreshTokenService).refreshToken(any(Jwt.class), any(RefreshTokenForm.class));
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user/refresh-token")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
     }
 
     @Test

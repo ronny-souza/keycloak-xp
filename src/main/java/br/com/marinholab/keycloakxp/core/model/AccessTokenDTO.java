@@ -3,7 +3,7 @@ package br.com.marinholab.keycloakxp.core.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record LoginResponseDTO(
+public record AccessTokenDTO(
         @JsonProperty("access_token")
         @Schema(description = "JWT access token, used for authentication in API calls.")
         String accessToken,
