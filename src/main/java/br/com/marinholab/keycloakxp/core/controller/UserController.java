@@ -2,17 +2,12 @@ package br.com.marinholab.keycloakxp.core.controller;
 
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
-import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
-import br.com.marinholab.keycloakxp.core.model.operations.RefreshTokenForm;
-import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
-import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
+import br.com.marinholab.keycloakxp.core.model.operations.*;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
+import br.com.marinholab.keycloakxp.core.service.ChangeUserPasswordService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.core.service.RefreshTokenService;
-import br.com.marinholab.keycloakxp.exception.CreateUserException;
-import br.com.marinholab.keycloakxp.exception.RefreshTokenException;
-import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
-import br.com.marinholab.keycloakxp.exception.UserLogoutException;
+import br.com.marinholab.keycloakxp.exception.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,13 +30,16 @@ public class UserController {
 
     private final CreateUserService createUserService;
     private final RefreshTokenService refreshTokenService;
+    private final ChangeUserPasswordService changeUserPasswordService;
     private final AuthenticationService authenticationService;
 
     public UserController(CreateUserService createUserService,
                           RefreshTokenService refreshTokenService,
+                          ChangeUserPasswordService changeUserPasswordService,
                           AuthenticationService authenticationService) {
         this.createUserService = createUserService;
         this.refreshTokenService = refreshTokenService;
+        this.changeUserPasswordService = changeUserPasswordService;
         this.authenticationService = authenticationService;
     }
 
@@ -165,6 +163,38 @@ public class UserController {
     public ResponseEntity<AccessTokenDTO> refreshToken(@AuthenticationPrincipal Jwt jwt,
                                                        @Valid @RequestBody RefreshTokenForm form) throws RefreshTokenException {
         return ResponseEntity.ok(this.refreshTokenService.refreshToken(jwt, form));
+    }
+
+    @Operation(summary = "Changes the user's password in Keycloak. The user can only change his own password.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The user password change operation was successful."
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "The new password provisioned by the user does not meet the required standards.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found in Keycloak.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+    })
+    @PutMapping("/password")
+    public ResponseEntity<Void> changeUserPassword(@AuthenticationPrincipal Jwt jwt,
+                                                   @Valid @RequestBody ChangePasswordForm form) throws UserNotFoundException {
+        this.changeUserPasswordService.changePassword(jwt.getClaimAsString("preferred_username"), form.password());
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Retrieves basic information of the currently authenticated user.")

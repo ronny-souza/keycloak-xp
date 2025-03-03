@@ -2,17 +2,12 @@ package br.com.marinholab.keycloakxp.core.controller;
 
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
-import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
-import br.com.marinholab.keycloakxp.core.model.operations.RefreshTokenForm;
-import br.com.marinholab.keycloakxp.core.model.operations.UserLoginForm;
-import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
+import br.com.marinholab.keycloakxp.core.model.operations.*;
 import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
+import br.com.marinholab.keycloakxp.core.service.ChangeUserPasswordService;
 import br.com.marinholab.keycloakxp.core.service.CreateUserService;
 import br.com.marinholab.keycloakxp.core.service.RefreshTokenService;
-import br.com.marinholab.keycloakxp.exception.CreateUserException;
-import br.com.marinholab.keycloakxp.exception.RefreshTokenException;
-import br.com.marinholab.keycloakxp.exception.UserAuthenticationException;
-import br.com.marinholab.keycloakxp.exception.UserLogoutException;
+import br.com.marinholab.keycloakxp.exception.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +33,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
@@ -58,6 +54,9 @@ class UserControllerTest {
 
     @MockitoBean
     private RefreshTokenService refreshTokenService;
+
+    @MockitoBean
+    private ChangeUserPasswordService changeUserPasswordService;
 
     private ObjectMapper objectMapper;
 
@@ -187,7 +186,7 @@ class UserControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/logout")
                         .header("Accept-Language", "en_US")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -204,7 +203,7 @@ class UserControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/logout")
                         .header("Accept-Language", "en_US")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
@@ -222,7 +221,7 @@ class UserControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/refresh-token")
                         .header("Accept-Language", "en_US")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -240,7 +239,7 @@ class UserControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/refresh-token")
                         .header("Accept-Language", "en_US")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -258,10 +257,61 @@ class UserControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/refresh-token")
                         .header("Accept-Language", "en_US")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and status 400 when the new password does not follow the password rules")
+    void shouldThrowExceptionAndStatus400WhenNewPasswordDoesNotFollowThePasswordRules() throws Exception {
+        ChangePasswordForm form = new ChangePasswordForm("fragilePassword");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .put("/user/password")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and status 404 when user is not found in Keycloak")
+    void shouldThrowExceptionAndStatus404WhenUserIsNotFoundInKeycloak() throws Exception {
+        ChangePasswordForm form = new ChangePasswordForm("Str0ngP@ssword");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        UserNotFoundException exceptionAsMock = new UserNotFoundException("root");
+
+        doThrow(exceptionAsMock).when(this.changeUserPasswordService).changePassword(anyString(), anyString());
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .put("/user/password")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return status 200 when the user's password change request is successful")
+    void shouldReturnStatus200WhenTheUsersPassworChangeRequestIsSuccessful() throws Exception {
+        ChangePasswordForm form = new ChangePasswordForm("Str0ngP@ssword");
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        doNothing().when(this.changeUserPasswordService).changePassword(anyString(), anyString());
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .put("/user/password")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
@@ -279,7 +329,7 @@ class UserControllerTest {
     void shouldGetCurrentAuthenticatedUser() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .get("/user/current")
-                        .with(jwt().jwt(token -> token.claim("root", "Str0ngP@ssword")))
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
                         .header("Accept-Language", "en_US")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
