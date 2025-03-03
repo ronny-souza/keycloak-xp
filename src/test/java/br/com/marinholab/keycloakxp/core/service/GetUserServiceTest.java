@@ -1,5 +1,6 @@
 package br.com.marinholab.keycloakxp.core.service;
 
+import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakProperties;
 import br.com.marinholab.keycloakxp.exception.UserNotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -16,8 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -70,5 +70,24 @@ class GetUserServiceTest {
 
         UserRepresentation userRepresentation = this.getUserService.searchUserRepresentationByUsername("root");
         assertEquals(userRepresentationAsMock, userRepresentation);
+    }
+
+    @Test
+    @DisplayName("Should return a user DTO representation of the user if the search is successful")
+    void shouldReturnUserDTORepresentationOfUserIfTheSearchIsSuccessful() throws UserNotFoundException {
+        RealmsResource realmsResourceAsMock = mock(RealmsResource.class);
+        RealmResource realmResourceAsMock = mock(RealmResource.class);
+        UsersResource usersResourceAsMock = mock(UsersResource.class);
+        UserRepresentation userRepresentationAsMock = mock(UserRepresentation.class);
+
+        when(this.keycloakProperties.getRealm()).thenReturn("realm");
+        when(this.keycloak.realms()).thenReturn(realmsResourceAsMock);
+        when(realmsResourceAsMock.realm(anyString())).thenReturn(realmResourceAsMock);
+        when(realmResourceAsMock.users()).thenReturn(usersResourceAsMock);
+        when(usersResourceAsMock.search(anyString(), anyBoolean())).thenReturn(Collections.singletonList(userRepresentationAsMock));
+        when(userRepresentationAsMock.getRealmRoles()).thenReturn(Collections.singletonList("USER"));
+
+        UserDTO userDTO = this.getUserService.searchUserAsDTOByUsername("root");
+        assertNotNull(userDTO);
     }
 }
