@@ -3,10 +3,7 @@ package br.com.marinholab.keycloakxp.core.controller;
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.*;
-import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
-import br.com.marinholab.keycloakxp.core.service.ChangeUserPasswordService;
-import br.com.marinholab.keycloakxp.core.service.CreateUserService;
-import br.com.marinholab.keycloakxp.core.service.RefreshTokenService;
+import br.com.marinholab.keycloakxp.core.service.*;
 import br.com.marinholab.keycloakxp.exception.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,15 +29,17 @@ public class UserController {
     private final RefreshTokenService refreshTokenService;
     private final ChangeUserPasswordService changeUserPasswordService;
     private final AuthenticationService authenticationService;
+    private final GetUserService getUserService;
 
     public UserController(CreateUserService createUserService,
                           RefreshTokenService refreshTokenService,
                           ChangeUserPasswordService changeUserPasswordService,
-                          AuthenticationService authenticationService) {
+                          AuthenticationService authenticationService, GetUserService getUserService) {
         this.createUserService = createUserService;
         this.refreshTokenService = refreshTokenService;
         this.changeUserPasswordService = changeUserPasswordService;
         this.authenticationService = authenticationService;
+        this.getUserService = getUserService;
     }
 
     @Operation(summary = "Create a user in Keycloak.")
@@ -216,9 +215,20 @@ public class UserController {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
+
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found in Keycloak.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
     })
     @GetMapping("/current")
-    public ResponseEntity<UserDTO> getCurrentAuthenticatedUser(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(new UserDTO(jwt));
+    public ResponseEntity<UserDTO> getCurrentAuthenticatedUser(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
+        return ResponseEntity.ok(
+                this.getUserService.searchUserAsDTOByUsername(jwt.getClaimAsString("preferred_username"))
+        );
     }
 }

@@ -3,10 +3,7 @@ package br.com.marinholab.keycloakxp.core.controller;
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.operations.*;
-import br.com.marinholab.keycloakxp.core.service.AuthenticationService;
-import br.com.marinholab.keycloakxp.core.service.ChangeUserPasswordService;
-import br.com.marinholab.keycloakxp.core.service.CreateUserService;
-import br.com.marinholab.keycloakxp.core.service.RefreshTokenService;
+import br.com.marinholab.keycloakxp.core.service.*;
 import br.com.marinholab.keycloakxp.exception.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +54,9 @@ class UserControllerTest {
 
     @MockitoBean
     private ChangeUserPasswordService changeUserPasswordService;
+
+    @MockitoBean
+    private GetUserService getUserService;
 
     private ObjectMapper objectMapper;
 
@@ -285,7 +285,6 @@ class UserControllerTest {
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
         UserNotFoundException exceptionAsMock = new UserNotFoundException("root");
-
         doThrow(exceptionAsMock).when(this.changeUserPasswordService).changePassword(anyString(), anyString());
 
         this.mockMvc.perform(MockMvcRequestBuilders
@@ -325,8 +324,25 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("Should throw an exception and status 404 when user is not found on get current authenticated user")
+    void shouldThrowAnExceptionAndStatus404WhenUserIsNotFoundOnGetCurrentAuthenticatedUser() throws Exception {
+        UserNotFoundException exceptionAsMock = new UserNotFoundException("root");
+        doThrow(exceptionAsMock).when(this.getUserService).searchUserAsDTOByUsername(anyString());
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .get("/user/current")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root")))
+                        .header("Accept-Language", "en_US")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Test
     @DisplayName("Should get current authenticated user")
     void shouldGetCurrentAuthenticatedUser() throws Exception {
+        UserDTO userDTOAsMock = mock(UserDTO.class);
+        doReturn(userDTOAsMock).when(this.getUserService).searchUserAsDTOByUsername(anyString());
+
         this.mockMvc.perform(MockMvcRequestBuilders
                         .get("/user/current")
                         .with(jwt().jwt(token -> token.claim("preferred_username", "root")))

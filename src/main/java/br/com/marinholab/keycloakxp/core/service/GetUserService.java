@@ -1,5 +1,6 @@
 package br.com.marinholab.keycloakxp.core.service;
 
+import br.com.marinholab.keycloakxp.core.model.UserDTO;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakProperties;
 import br.com.marinholab.keycloakxp.exception.UserNotFoundException;
 import org.keycloak.admin.client.Keycloak;
@@ -34,5 +35,9 @@ public class GetUserService {
         String realm = this.keycloakProperties.getRealm();
         RealmResource realmResource = this.keycloak.realms().realm(realm);
         return this.searchUserRepresentationByUsername(realmResource, username);
+    }
+
+    public UserDTO searchUserAsDTOByUsername(String username) throws UserNotFoundException {
+        return new UserDTO(this.searchUserRepresentationByUsername(username));
     }
 }
