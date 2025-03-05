@@ -28,17 +28,19 @@ public class UserController {
     private final CreateUserService createUserService;
     private final RefreshTokenService refreshTokenService;
     private final ChangeUserPasswordService changeUserPasswordService;
-    private final AuthenticationService authenticationService;
+    private final LoginService loginService;
+    private final LogoutService logoutService;
     private final GetUserService getUserService;
 
     public UserController(CreateUserService createUserService,
                           RefreshTokenService refreshTokenService,
                           ChangeUserPasswordService changeUserPasswordService,
-                          AuthenticationService authenticationService, GetUserService getUserService) {
+                          LoginService loginService, LogoutService logoutService, GetUserService getUserService) {
         this.createUserService = createUserService;
         this.refreshTokenService = refreshTokenService;
         this.changeUserPasswordService = changeUserPasswordService;
-        this.authenticationService = authenticationService;
+        this.loginService = loginService;
+        this.logoutService = logoutService;
         this.getUserService = getUserService;
     }
 
@@ -102,7 +104,7 @@ public class UserController {
     })
     @PostMapping("/login")
     public ResponseEntity<AccessTokenDTO> login(@Valid @RequestBody UserLoginForm form) throws UserAuthenticationException {
-        AccessTokenDTO response = this.authenticationService.login(form);
+        AccessTokenDTO response = this.loginService.login(form);
         return ResponseEntity.ok(response);
     }
 
@@ -125,7 +127,7 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt,
                                        @Valid @RequestBody UserLogoutForm form) throws UserLogoutException {
-        this.authenticationService.logout(form, jwt);
+        this.logoutService.logout(form, jwt);
         return ResponseEntity.noContent().build();
     }
 

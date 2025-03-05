@@ -47,13 +47,16 @@ class UserControllerTest {
     private CreateUserService createUserService;
 
     @MockitoBean
-    private AuthenticationService authenticationService;
+    private LogoutService logoutService;
 
     @MockitoBean
     private RefreshTokenService refreshTokenService;
 
     @MockitoBean
     private ChangeUserPasswordService changeUserPasswordService;
+
+    @MockitoBean
+    private LoginService loginService;
 
     @MockitoBean
     private GetUserService getUserService;
@@ -147,7 +150,7 @@ class UserControllerTest {
         UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
 
         String formAsJson = this.objectMapper.writeValueAsString(form);
-        when(this.authenticationService.login(any(UserLoginForm.class))).thenThrow(new UserAuthenticationException(form.username()));
+        when(this.loginService.login(any(UserLoginForm.class))).thenThrow(new UserAuthenticationException(form.username()));
 
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/login")
@@ -163,7 +166,7 @@ class UserControllerTest {
         UserLoginForm form = new UserLoginForm("root", "Str0ngP@ssword");
 
         AccessTokenDTO accessTokenDTOAsMock = mock(AccessTokenDTO.class);
-        when(this.authenticationService.login(any(UserLoginForm.class))).thenReturn(accessTokenDTOAsMock);
+        when(this.loginService.login(any(UserLoginForm.class))).thenReturn(accessTokenDTOAsMock);
 
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
@@ -181,7 +184,7 @@ class UserControllerTest {
         UserLogoutForm form = new UserLogoutForm("refreshToken");
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
-        doThrow(new UserLogoutException("root")).when(this.authenticationService).logout(any(UserLogoutForm.class), any(Jwt.class));
+        doThrow(new UserLogoutException("root")).when(this.logoutService).logout(any(UserLogoutForm.class), any(Jwt.class));
 
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/logout")
@@ -198,7 +201,7 @@ class UserControllerTest {
         UserLogoutForm form = new UserLogoutForm(this.jwtTokenMock);
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
-        doNothing().when(this.authenticationService).logout(any(UserLogoutForm.class), any(Jwt.class));
+        doNothing().when(this.logoutService).logout(any(UserLogoutForm.class), any(Jwt.class));
 
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user/logout")
