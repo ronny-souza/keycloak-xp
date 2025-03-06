@@ -92,8 +92,8 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should throw an exception and status 500 when an internal error prevents user creation")
-    void shouldThrowAnExceptionAndStatus500WhenAnInternalErrorPreventsUserCreation() throws Exception {
+    @DisplayName("Should throw an exception and return status 409 when user information conflicts with that of an existing record")
+    void shouldThrowAnExceptionAndReturnStatus409WhenUserInformationConflictsWithThatOfAnExistingRecord() throws Exception {
         CreateUserForm form = new CreateUserForm(
                 "test",
                 "test@example.com",
@@ -104,7 +104,32 @@ class UserControllerTest {
 
         String formAsJson = this.objectMapper.writeValueAsString(form);
 
-        when(this.createUserService.createUser(any())).thenThrow(CreateUserException.class);
+        CreateUserException createUserException = new CreateUserException(HttpStatus.CONFLICT, "root");
+
+        doThrow(createUserException).when(this.createUserService).createUser(any(CreateUserForm.class));
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .post("/user")
+                        .content(formAsJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isConflict());
+    }
+
+    @Test
+    @DisplayName("Should throw an exception and return status 500 when there is an internal error during user creation")
+    void shouldThrowAnExceptionAndReturnStatus500WhenThereIsAnInternalErrorDuringUserCreation() throws Exception {
+        CreateUserForm form = new CreateUserForm(
+                "test",
+                "test@example.com",
+                "firstName",
+                "lastName",
+                "Str0ngP@ssword"
+        );
+
+        String formAsJson = this.objectMapper.writeValueAsString(form);
+
+        CreateUserException createUserException = new CreateUserException("root");
+        doThrow(createUserException).when(this.createUserService).createUser(any(CreateUserForm.class));
 
         this.mockMvc.perform(MockMvcRequestBuilders
                         .post("/user")
