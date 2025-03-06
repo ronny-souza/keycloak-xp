@@ -54,7 +54,6 @@ public class UserController {
                             schema = @Schema(implementation = UserDTO.class)
                     )
             ),
-
             @ApiResponse(
                     responseCode = "400",
                     description = "The information sent to the user may be incorrect.",
@@ -63,7 +62,14 @@ public class UserController {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "The user entered a username or email already existing in the database.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "The user could not be created in Keycloak due to some internal error.",
@@ -92,7 +98,6 @@ public class UserController {
                             schema = @Schema(implementation = AccessTokenDTO.class)
                     )
             ),
-
             @ApiResponse(
                     responseCode = "401",
                     description = "The user's credentials are invalid and Keycloak could not authenticate the user.",
@@ -114,7 +119,6 @@ public class UserController {
                     responseCode = "204",
                     description = "The user session was successfully disconnected from Keycloak."
             ),
-
             @ApiResponse(
                     responseCode = "400",
                     description = "Unable to log out the user from Keycloak. This could be an internal issue or invalid credentials.",
