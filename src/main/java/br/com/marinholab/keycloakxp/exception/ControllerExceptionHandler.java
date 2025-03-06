@@ -20,12 +20,6 @@ public class ControllerExceptionHandler {
         this.messageSource = messageSource;
     }
 
-    @ExceptionHandler(CreateUserException.class)
-    public ResponseEntity<ProblemDetail> handleCreateUserException(CreateUserException exception) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentNotFoundException(MethodArgumentNotValidException exception) {
         String detail = this.messageSource.getMessage(

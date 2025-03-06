@@ -3,6 +3,7 @@ package br.com.marinholab.keycloakxp.core.service;
 import br.com.marinholab.keycloakxp.core.model.operations.CreateUserForm;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakProperties;
 import br.com.marinholab.keycloakxp.exception.CreateUserException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,21 +44,25 @@ class CreateUserServiceTest {
         RealmResource realmResourceAsMock = mock(RealmResource.class);
         UserRepresentation userRepresentationAsMock = mock(UserRepresentation.class);
         UsersResource usersResourceAsMock = mock(UsersResource.class);
+        WebApplicationException webApplicationExceptionAsMock = mock(WebApplicationException.class);
+        Response responseAsMock = mock(Response.class);
 
 
         when(this.keycloakProperties.getRealm()).thenReturn("realm");
         when(this.keycloak.realm(this.keycloakProperties.getRealm())).thenReturn(realmResourceAsMock);
         when(createUserFormAsMock.configureAsKeycloakUserRepresentation()).thenReturn(userRepresentationAsMock);
         when(realmResourceAsMock.users()).thenReturn(usersResourceAsMock);
-
-        try (Response responseAsMock = mock(Response.class)) {
-            when(usersResourceAsMock.create(userRepresentationAsMock)).thenReturn(responseAsMock);
-        }
+        when(usersResourceAsMock.create(userRepresentationAsMock)).thenThrow(webApplicationExceptionAsMock);
+        when(webApplicationExceptionAsMock.getResponse()).thenReturn(responseAsMock);
+        when(responseAsMock.getStatus()).thenReturn(409);
+        when(createUserFormAsMock.username()).thenReturn("root");
 
         assertThrows(
                 CreateUserException.class,
                 () -> this.createUserService.createUser(createUserFormAsMock)
         );
+
+        responseAsMock.close();
     }
 
     @Test
