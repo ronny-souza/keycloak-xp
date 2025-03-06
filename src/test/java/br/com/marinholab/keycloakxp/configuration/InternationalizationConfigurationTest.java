@@ -49,4 +49,14 @@ class InternationalizationConfigurationTest {
         Locale locale = this.internationalizationConfiguration.resolveLocale(httpServletRequestAsMock);
         assertNotNull(locale);
     }
+
+    @Test
+    @DisplayName("Should return a valid locale when accept language header is empty")
+    void shouldReturnValidLocaleWhenAcceptLanguageHeaderIsEmpty() {
+        HttpServletRequest httpServletRequestAsMock = mock(HttpServletRequest.class);
+        when(httpServletRequestAsMock.getHeader("Accept-Language")).thenReturn("");
+
+        Locale locale = this.internationalizationConfiguration.resolveLocale(httpServletRequestAsMock);
+        assertNotNull(locale);
+    }
 }
