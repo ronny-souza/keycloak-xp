@@ -1,3 +1,5 @@
+server:
+  port: ${APP_PORT:8095}
 spring:
   application:
     name: Keycloak XP
