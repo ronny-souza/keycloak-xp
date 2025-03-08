@@ -121,12 +121,20 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Unable to log out the user from Keycloak. This could be an internal issue or invalid credentials.",
+                    description = "The user's session could not be terminated because the required information is invalid.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Logout could not be requested in Keycloak due to some internal error.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
     })
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt,
