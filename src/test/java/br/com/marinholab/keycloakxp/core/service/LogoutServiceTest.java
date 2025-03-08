@@ -42,6 +42,7 @@ class LogoutServiceTest {
         UserLogoutForm formAsMock = mock(UserLogoutForm.class);
         KeycloakClientProperties keycloakClientPropertiesAsMock = mock(KeycloakClientProperties.class);
         Jwt jwtAsMock = mock(Jwt.class);
+        FeignException exceptionAsMock = mock(FeignException.class);
 
         when(formAsMock.refreshToken()).thenReturn(refreshToken);
         when(this.keycloakProperties.getRealm()).thenReturn("realm");
@@ -49,7 +50,8 @@ class LogoutServiceTest {
         when(this.keycloakProperties.getDefaultClient()).thenReturn(keycloakClientPropertiesAsMock);
         when(keycloakClientPropertiesAsMock.getClientId()).thenReturn("clientId");
         when(keycloakClientPropertiesAsMock.getClientSecret()).thenReturn("secret");
-        when(this.keycloakClient.logout(anyString(), anyString(), anyMap())).thenThrow(FeignException.class);
+        when(this.keycloakClient.logout(anyString(), anyString(), anyMap())).thenThrow(exceptionAsMock);
+        when(exceptionAsMock.status()).thenReturn(400);
         when(jwtAsMock.getClaimAsString("preferred_username")).thenReturn("root");
 
         assertThrows(
