@@ -42,8 +42,9 @@ public class LogoutService {
                 throw new UserLogoutException(jwt.getClaimAsString("preferred_username"));
             }
         } catch (FeignException e) {
-            LOGGER.error("User logout error: {}", e.getMessage());
-            throw new UserLogoutException(jwt.getClaimAsString("preferred_username"));
+            LOGGER.error(e.getMessage(), e);
+            HttpStatus httpStatus = HttpStatus.valueOf(e.status());
+            throw new UserLogoutException(httpStatus, jwt.getClaimAsString("preferred_username"));
         }
     }
 
