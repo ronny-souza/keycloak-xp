@@ -1,6 +1,7 @@
 package br.com.marinholab.keycloakxp.core.service;
 
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
+import br.com.marinholab.keycloakxp.core.model.common.JwtProperties;
 import br.com.marinholab.keycloakxp.core.model.operations.RefreshTokenForm;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakClientProperties;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakProperties;
@@ -38,7 +39,7 @@ public class RefreshTokenService {
             );
         } catch (FeignException e) {
             LOGGER.error(e.getMessage());
-            String username = jwt.getClaimAsString("preferred_username");
+            String username = jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME);
             HttpStatus httpStatus = HttpStatus.valueOf(e.status());
             throw new RefreshTokenException(httpStatus, username);
         }

@@ -2,6 +2,7 @@ package br.com.marinholab.keycloakxp.core.controller;
 
 import br.com.marinholab.keycloakxp.core.model.AccessTokenDTO;
 import br.com.marinholab.keycloakxp.core.model.UserDTO;
+import br.com.marinholab.keycloakxp.core.model.common.JwtProperties;
 import br.com.marinholab.keycloakxp.core.model.operations.*;
 import br.com.marinholab.keycloakxp.core.service.*;
 import br.com.marinholab.keycloakxp.exception.*;
@@ -31,17 +32,22 @@ public class UserController {
     private final LoginService loginService;
     private final LogoutService logoutService;
     private final GetUserService getUserService;
+    private final DeactivateUserService deactivateUserService;
 
     public UserController(CreateUserService createUserService,
                           RefreshTokenService refreshTokenService,
                           ChangeUserPasswordService changeUserPasswordService,
-                          LoginService loginService, LogoutService logoutService, GetUserService getUserService) {
+                          LoginService loginService,
+                          LogoutService logoutService,
+                          GetUserService getUserService,
+                          DeactivateUserService deactivateUserService) {
         this.createUserService = createUserService;
         this.refreshTokenService = refreshTokenService;
         this.changeUserPasswordService = changeUserPasswordService;
         this.loginService = loginService;
         this.logoutService = logoutService;
         this.getUserService = getUserService;
+        this.deactivateUserService = deactivateUserService;
     }
 
     @Operation(summary = "Create a user in Keycloak.")
@@ -206,8 +212,30 @@ public class UserController {
     @PutMapping("/password")
     public ResponseEntity<Void> changeUserPassword(@AuthenticationPrincipal Jwt jwt,
                                                    @Valid @RequestBody ChangePasswordForm form) throws UserNotFoundException {
-        this.changeUserPasswordService.changePassword(jwt.getClaimAsString("preferred_username"), form.password());
+        this.changeUserPasswordService.changePassword(jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME), form.password());
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Disables the account of the currently authenticated user. This operation is currently not reversible.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "The user account has been disabled in Keycloak."
+            ),
+
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found in Keycloak.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+    })
+    @PatchMapping("/deactivate")
+    public ResponseEntity<Void> deactivateUser(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
+        this.deactivateUserService.deactivate(jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Retrieves basic information of the currently authenticated user.")
@@ -242,7 +270,7 @@ public class UserController {
     @GetMapping("/current")
     public ResponseEntity<UserDTO> getCurrentAuthenticatedUser(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return ResponseEntity.ok(
-                this.getUserService.searchUserAsDTOByUsername(jwt.getClaimAsString("preferred_username"))
+                this.getUserService.searchUserAsDTOByUsername(jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME))
         );
     }
 }

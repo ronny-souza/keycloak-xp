@@ -47,9 +47,6 @@ class UserControllerTest {
     private CreateUserService createUserService;
 
     @MockitoBean
-    private LogoutService logoutService;
-
-    @MockitoBean
     private RefreshTokenService refreshTokenService;
 
     @MockitoBean
@@ -57,6 +54,12 @@ class UserControllerTest {
 
     @MockitoBean
     private LoginService loginService;
+
+    @MockitoBean
+    private LogoutService logoutService;
+
+    @MockitoBean
+    private DeactivateUserService deactivateUserService;
 
     @MockitoBean
     private GetUserService getUserService;
@@ -339,6 +342,31 @@ class UserControllerTest {
                         .content(formAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should return status 204 when the request to deactivate the user is executed successfully")
+    void shouldReturnStatus204WhenTheRequestToDeactivateUserIsExecutedSuccessfully() throws Exception {
+        doNothing().when(this.deactivateUserService).deactivate(anyString());
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/user/deactivate")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root"))))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Should return status 404 when user is not found in Keycloak during account deactivation operation")
+    void shouldReturnStatus404WhenUserIsNotFoundInKeycloakDuringAccountDeactivationOperation() throws Exception {
+        UserNotFoundException exception = new UserNotFoundException("root");
+        doThrow(exception).when(this.deactivateUserService).deactivate(anyString());
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/user/deactivate")
+                        .header("Accept-Language", "en_US")
+                        .with(jwt().jwt(token -> token.claim("preferred_username", "root"))))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
