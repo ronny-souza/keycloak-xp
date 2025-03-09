@@ -82,7 +82,57 @@ keycloak:
 mvn spring-boot:run
 ```
 
-Acesse a documentação do Swagger para testar os endpoints: 👉 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+Acesse a documentação do Swagger para testar os endpoints: 👉 [http://localhost:8095/swagger-ui/index.html](http://localhost:8095/swagger-ui/index.html)
+
+## 🐳 Como executar utilizando Docker?
+
+A API está disponível no Docker Hub, e pode ser utilizada por meio de uma configuração adicionada ao arquivo [`docker-compose.yml`](https://github.com/ronny-souza/keycloak-xp/blob/main/docker-compose.yml), presente nesse repositório.
+
+### 1️⃣ Configurando o arquivo docker-compose.yml
+
+No arquivo `docker-compose.yml`, adicione a seguinte configuração:
+
+```yaml
+  keycloakxp-api:
+    container_name: keycloakxp-api
+    image: ronyerimsa/keycloakxp-api:latest
+    environment:
+      - APP_OAUTH2_JWK_ISSUER_URI=http://keycloak:8080/realms/keycloakxp
+      - KEYCLOAK_SERVER=http://keycloak:8080
+      - KEYCLOAK_REALM=keycloakxp
+      - DEFAULT_CLIENT_ID=keycloakxp
+      - DEFAULT_CLIENT_SECRET=h3L7jiRII72FmRFFcwChSS3wXhwsbWEF
+      - API_DEVELOPER_CONTACT=ronyerimarinho19@gmail.com
+    ports:
+      - 8095:8095
+    depends_on:
+      - keycloak
+```
+
+A configuração acima determina utiliza a versão mais recente da aplicação, que pode ser visualizada [aqui](https://hub.docker.com/r/ronyerimsa/keycloakxp-api). As variáveis de ambiente foram configuradas para se comunicar com o serviço do Keycloak presente no `docker-compose.yml`, que está executando na porta 8080. Ao alterar o serviço ou portas, certifique-se de ajustar todo o arquivo de configuração.
+
+### 2️⃣ Variáveis de ambiente
+
+As seguintes variáveis de ambiente podem ser configuradas, e são **obrigatórias**:
+
+| Variável                | Exemplo                 | Descrição                 |                  
+| ----------------------- | ----------------------- |
+| `APP_OAUTH2_JWK_ISSUER_URI`       | `http://keycloak:8080/realms/keycloakxp` | URI do emissor JWK para autenticação OAuth2. |
+| `KEYCLOAK_SERVER`       | `http://keycloak:8080` | URL do servidor Keycloak. |
+| `KEYCLOAK_REALM`        | `keycloakxp`            |  Nome do realm no Keycloak. |
+| `DEFAULT_CLIENT_ID`     | `keycloakxp`            |  ID do cliente padrão registrado no Keycloak. |
+| `DEFAULT_CLIENT_SECRET` | `chave_secreta`         |  Segredo do cliente padrão. |
+| `API_DEVELOPER_CONTACT` | `youremail@example.com`         |  E-mail de contato disponível na interface pública do Swagger da API. |
+
+### 3️⃣ Executando os contêineres
+
+```sh
+docker-compose up -d
+```
+
+### 4️⃣ Acessando a API
+
+Acesse a documentação do Swagger para testar os endpoints: 👉 [http://localhost:8095/swagger-ui/index.html](http://localhost:8095/swagger-ui/index.html)
 
 ## 📄 Licença
 
