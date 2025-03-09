@@ -31,7 +31,6 @@ public class GetUserService {
     }
 
     public UserRepresentation searchUserRepresentationByUsername(String username) throws UserNotFoundException {
-        LOGGER.info("Searching for user {} on Keycloak...", username);
         String realm = this.keycloakProperties.getRealm();
         RealmResource realmResource = this.keycloak.realms().realm(realm);
         return this.searchUserRepresentationByUsername(realmResource, username);
