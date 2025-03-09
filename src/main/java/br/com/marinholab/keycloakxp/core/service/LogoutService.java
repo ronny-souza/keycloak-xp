@@ -1,6 +1,7 @@
 package br.com.marinholab.keycloakxp.core.service;
 
 
+import br.com.marinholab.keycloakxp.core.model.common.JwtProperties;
 import br.com.marinholab.keycloakxp.core.model.operations.UserLogoutForm;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakClientProperties;
 import br.com.marinholab.keycloakxp.core.model.properties.KeycloakProperties;
@@ -39,12 +40,12 @@ public class LogoutService {
 
             if (!response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
                 LOGGER.error("User logout error: {}", response.getBody());
-                throw new UserLogoutException(jwt.getClaimAsString("preferred_username"));
+                throw new UserLogoutException(jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME));
             }
         } catch (FeignException e) {
             LOGGER.error(e.getMessage(), e);
             HttpStatus httpStatus = HttpStatus.valueOf(e.status());
-            throw new UserLogoutException(httpStatus, jwt.getClaimAsString("preferred_username"));
+            throw new UserLogoutException(httpStatus, jwt.getClaimAsString(JwtProperties.PREFERRED_USERNAME));
         }
     }
 
