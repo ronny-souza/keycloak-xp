@@ -115,14 +115,14 @@ A configuração acima determina utiliza a versão mais recente da aplicação, 
 
 As seguintes variáveis de ambiente podem ser configuradas, e são **obrigatórias**:
 
-| Variável                | Exemplo                 | Descrição                 |                  
-| ----------------------- | ----------------------- |
-| `APP_OAUTH2_JWK_ISSUER_URI`       | `http://keycloak:8080/realms/keycloakxp` | URI do emissor JWK para autenticação OAuth2. |
-| `KEYCLOAK_SERVER`       | `http://keycloak:8080` | URL do servidor Keycloak. |
-| `KEYCLOAK_REALM`        | `keycloakxp`            |  Nome do realm no Keycloak. |
-| `DEFAULT_CLIENT_ID`     | `keycloakxp`            |  ID do cliente padrão registrado no Keycloak. |
-| `DEFAULT_CLIENT_SECRET` | `chave_secreta`         |  Segredo do cliente padrão. |
-| `API_DEVELOPER_CONTACT` | `youremail@example.com`         |  E-mail de contato disponível na interface pública do Swagger da API. |
+| Variável                      |  Exemplo                                 | Descrição                                                             |                  
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------    |
+| `APP_OAUTH2_JWK_ISSUER_URI`   | `http://keycloak:8080/realms/keycloakxp` | URI do emissor JWK para autenticação OAuth2.                          |
+| `KEYCLOAK_SERVER`             | `http://keycloak:8080`                   | URL do servidor Keycloak.                                             |
+| `KEYCLOAK_REALM`              | `keycloakxp`                             |  Nome do realm no Keycloak.                                           |
+| `DEFAULT_CLIENT_ID`           | `keycloakxp`                             |  ID do cliente padrão registrado no Keycloak.                         |
+| `DEFAULT_CLIENT_SECRET`       | `chave_secreta`                          |  Segredo do cliente padrão.                                           |
+| `API_DEVELOPER_CONTACT`       | `youremail@example.com`                  |  E-mail de contato disponível na interface pública do Swagger da API. |
 
 ### 3️⃣ Executando os contêineres
 
